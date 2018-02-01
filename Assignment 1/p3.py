@@ -1,3 +1,5 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -117,19 +119,20 @@ k_list = [1, 5, 10, 25, 50, 100, 200]
 accuracy_list = []
 trainData, validData, testData, trainTarget, validTarget, testTarget=data_segmentation("data.npy","target.npy",0)
 
-for k in k_list:
-    prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,validData,validTarget, k)
+if False:
+    for k in k_list:
+        prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,validData,validTarget, k)
+        accuracy = accuracy_result.count(True) / len(accuracy_result) * 100
+        accuracy_list.append(accuracy)
+        print(testTarget)
+        print("Accuracy for the validation set is %s %s,for k = %s"%(accuracy,'%',k))
+
+    k_best = k_list[np.argmax(accuracy_list)]
+    print("The best k for the validation set is: %s"%k_best)
+
+    prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,testData,testTarget,k_best)
     accuracy = accuracy_result.count(True) / len(accuracy_result) * 100
-    accuracy_list.append(accuracy)
-    print(testTarget)
-    print("Accuracy for the validation set is %s %s,for k = %s"%(accuracy,'%',k))
-
-k_best = k_list[np.argmax(accuracy_list)]
-print("The best k for the validation set is: %s"%k_best)
-
-prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,testData,testTarget,k_best)
-accuracy = accuracy_result.count(True) / len(accuracy_result) * 100
-print("Accuracy for the test set is: %s %s, for k = %s"%(accuracy,'%',k_best))
+    print("Accuracy for the test set is: %s %s, for k = %s"%(accuracy,'%',k_best))
 
 print("For k=10 display one failure case: test image and the 10 nearest images")
 prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,testData,testTarget,10)
@@ -139,9 +142,10 @@ print(first_fail_index)
 
 #not sure yet, trying to display image
 tmp = testData[first_fail_index]
-tmp = tmp.reshape((32,32))
+tmp = tf.cast(tmp, tf.float32)
+tmp = tf.reshape(tmp,[32,32])
 
-plt.imshow(tmp, cmap = cm.Greys)
+plt.imshow(sess.run(tmp),cmap=plt.gray())
 plt.show()
 
 
