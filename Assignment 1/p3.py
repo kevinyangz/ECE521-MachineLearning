@@ -106,8 +106,9 @@ def findPredictClassLableAndAccuracy(trainMatrix,trainTarget,testMatrix,testTarg
         accuracy_result.append(testTarget[i] == sess.run(top_result_i)[0])
         prediction_result.append(sess.run(top_result_i)[0])
     
-    print(accuracy_result)
-    print(prediction_result)
+    #print(accuracy_result)
+    #print(prediction_result)
+    #print(testTarget)
     return prediction_result, accuracy_result
 
 
@@ -119,34 +120,66 @@ k_list = [1, 5, 10, 25, 50, 100, 200]
 accuracy_list = []
 trainData, validData, testData, trainTarget, validTarget, testTarget=data_segmentation("data.npy","target.npy",0)
 
-if False:
-    for k in k_list:
-        prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,validData,validTarget, k)
-        accuracy = accuracy_result.count(True) / len(accuracy_result) * 100
-        accuracy_list.append(accuracy)
-        print(testTarget)
-        print("Accuracy for the validation set is %s %s,for k = %s"%(accuracy,'%',k))
-
-    k_best = k_list[np.argmax(accuracy_list)]
-    print("The best k for the validation set is: %s"%k_best)
-
-    prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,testData,testTarget,k_best)
+for k in k_list:
+    prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,validData,validTarget, k)
     accuracy = accuracy_result.count(True) / len(accuracy_result) * 100
-    print("Accuracy for the test set is: %s %s, for k = %s"%(accuracy,'%',k_best))
+    accuracy_list.append(accuracy)
+    #print(testTarget)
+    print("Accuracy for the validation set is %s %s,for k = %s"%(accuracy,'%',k))
+
+k_best = k_list[np.argmax(accuracy_list)]
+print("The best k for the validation set is: %s"%k_best)
+
+prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,testData,testTarget,k_best)
+accuracy = accuracy_result.count(True) / len(accuracy_result) * 100
+print("Accuracy for the test set is: %s %s, for k = %s"%(accuracy,'%',k_best))
 
 print("For k=10 display one failure case: test image and the 10 nearest images")
 prediction_result, accuracy_result = findPredictClassLableAndAccuracy(trainData,trainTarget,testData,testTarget,10)
 first_fail_index = accuracy_result.index(False)
-print(testData[first_fail_index])
+#first_fail_index = 6
+
+shape=tf.shape(testData)
+col=shape[1]
+first_fail = tf.slice(testData, [first_fail_index, 0], [1,col])
+#first_fail = tf.reshape(testData[first_fail_index], [1, -1])
+print(sess.run(first_fail))
 print(first_fail_index)
 
-#not sure yet, trying to display image
+responsibilityMatrix = findResponsibility(trainData,first_fail,10)
+responsibilityMatrix = tf.reshape(responsibilityMatrix,[-1])
+print(sess.run(tf.size(trainData)))
+print(sess.run(tf.size(first_fail)))
+print(sess.run(tf.size(responsibilityMatrix)))
+print(sess.run(responsibilityMatrix))
+
+closest_10_index = tf.where((responsibilityMatrix>0))
+closest_10_index = sess.run(closest_10_index)
+print(closest_10_index)
+
 tmp = testData[first_fail_index]
 tmp = tf.cast(tmp, tf.float32)
 tmp = tf.reshape(tmp,[32,32])
 
+plt.figure()
+plt.subplot(3,5,1)
 plt.imshow(sess.run(tmp),cmap=plt.gray())
+
+j = 5
+for i in closest_10_index:
+    j = j + 1
+    tmp = trainData[i]
+    tmp = tf.cast(tmp, tf.float32)
+    tmp = tf.reshape(tmp,[32,32])
+    plt.subplot(3,5,j)
+    plt.imshow(sess.run(tmp),cmap=plt.gray())
+
 plt.show()
+
+
+
+
+
 
 
 
