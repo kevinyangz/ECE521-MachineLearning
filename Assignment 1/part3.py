@@ -55,7 +55,7 @@ def findPredictClassLableAndAccuracy(trainMatrix,trainTarget,testMatrix,testTarg
     for i in range(np.shape(result)[0]):
         #print("-------------------")
         result_i,indx_i,count_i = tf.unique_with_counts(result[i])
-        top_val,top_index = tf.nn.top_k(result_i, 1)
+        top_val,top_index = tf.nn.top_k(count_i, 1)
         top_result_i = tf.gather(result_i,top_index)
         accuracy_result.append(testTarget[i] == sess.run(top_result_i)[0])
         prediction_result.append(sess.run(top_result_i)[0])
