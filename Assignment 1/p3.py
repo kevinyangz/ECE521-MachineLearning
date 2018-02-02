@@ -143,19 +143,19 @@ shape=tf.shape(testData)
 col=shape[1]
 first_fail = tf.slice(testData, [first_fail_index, 0], [1,col])
 #first_fail = tf.reshape(testData[first_fail_index], [1, -1])
-print(sess.run(first_fail))
-print(first_fail_index)
+#print(sess.run(first_fail))
+#print(first_fail_index)
 
 responsibilityMatrix = findResponsibility(trainData,first_fail,10)
 responsibilityMatrix = tf.reshape(responsibilityMatrix,[-1])
-print(sess.run(tf.size(trainData)))
-print(sess.run(tf.size(first_fail)))
-print(sess.run(tf.size(responsibilityMatrix)))
-print(sess.run(responsibilityMatrix))
+#print(sess.run(tf.size(trainData)))
+#print(sess.run(tf.size(first_fail)))
+#print(sess.run(tf.size(responsibilityMatrix)))
+#print(sess.run(responsibilityMatrix))
 
 closest_10_index = tf.where((responsibilityMatrix>0))
 closest_10_index = sess.run(closest_10_index)
-print(closest_10_index)
+#print(closest_10_index)
 
 tmp = testData[first_fail_index]
 tmp = tf.cast(tmp, tf.float32)
