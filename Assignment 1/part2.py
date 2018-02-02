@@ -61,30 +61,32 @@ def KNNRegression(trainData,testData,trainTarget,testTarget,k):
         plt.show()
         plt.savefig("k=%s.png"%(k))
 
+def main():
 
-sess = tf.InteractiveSession()
-init = tf.global_variables_initializer()
-sess.run(init)
-
-
-np.random.seed(521)
-Data = np.linspace(0.0 , 11.0 , num =1000) [:, np. newaxis]
-Target = np.sin( Data ) + 0.1 * np.power( Data , 2) \
-+ 0.5 * np.random.randn(1000 , 1)
-randIdx = np.arange(1000)
-np.random.shuffle(randIdx)
-trainData, trainTarget = Data[randIdx[:800]], Target[randIdx[:800]]
-validData, validTarget = Data[randIdx[800:900]], Target[randIdx[800:900]]
-testData, testTarget = Data[randIdx[900:1000]], Target[randIdx[900:1000]]
-
-klist=[1,3,5,50]
-for k in klist:
-        KNNRegression(trainData,testData,trainTarget,testTarget,k)
-
-print("validData")
-for k in klist:    
-       KNNRegression(trainData,validData,trainTarget,validTarget,k)
+		sess = tf.InteractiveSession()
+		init = tf.global_variables_initializer()
+		sess.run(init)
 
 
+		np.random.seed(521)
+		Data = np.linspace(0.0 , 11.0 , num =1000) [:, np. newaxis]
+		Target = np.sin( Data ) + 0.1 * np.power( Data , 2) \
+		+ 0.5 * np.random.randn(1000 , 1)
+		randIdx = np.arange(1000)
+		np.random.shuffle(randIdx)
+		trainData, trainTarget = Data[randIdx[:800]], Target[randIdx[:800]]
+		validData, validTarget = Data[randIdx[800:900]], Target[randIdx[800:900]]
+		testData, testTarget = Data[randIdx[900:1000]], Target[randIdx[900:1000]]
 
+		klist=[1,3,5,50]
+		for k in klist:
+		        KNNRegression(trainData,testData,trainTarget,testTarget,k)
+
+		print("validData")
+		for k in klist:    
+		       KNNRegression(trainData,validData,trainTarget,validTarget,k)
+
+
+if __name__ == "__main__":
+    main()
 
