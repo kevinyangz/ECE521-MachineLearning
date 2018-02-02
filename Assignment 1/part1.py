@@ -1,26 +1,13 @@
 import tensorflow as tf
 import numpy as np
 
-def euclideanDistance(x, z):
-    y = x-z
-    distance = tf.transpose(y)*(y)
-    return distance
-
-def euclideanDistanceMultipleDimension(A,B):
-    r = tf.reduce_sum(A*A, 1)
-    d = tf.reduce_sum(B*B,1)
-    d = tf.reshape(d, [-1, 1])
-    #print (d.shape)
-    r = tf.reshape(r, [-1, 1])
-
-    #print (sess.run(r))
-    
-    #print (sess.run(d))
-    
-    #print (sess.run(2*tf.matmul(A, tf.transpose(B))))
-    
-    D = r - 2*tf.matmul(A, tf.transpose(B)) + tf.transpose(d)
-    return D
+def euclideanDistanceMultipleDimension(TrainData,TestData):
+    squareTrain = tf.reduce_sum(TrainData*TrainData, 1)
+    squareTest = tf.reduce_sum(TestData*TestData,1)
+    squareTrain= tf.reshape(squareTrain, [-1, 1])
+    squareTest= tf.reshape(squareTest, [-1, 1])
+    euclideanMatrix = squareTrain - 2*tf.matmul(TrainData, tf.transpose(TestData)) + tf.transpose(squareTest)
+    return euclideanMatrix
 
 def euclideanV3(x,z):
     #get the dimension of z,x 
@@ -44,3 +31,4 @@ def euclideanV3(x,z):
     #print (sess.run(square_difference))
     d = tf.reduce_sum(square_difference,2)
     return d
+
