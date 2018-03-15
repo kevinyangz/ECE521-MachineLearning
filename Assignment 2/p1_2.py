@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from random import *
+import time
 
 #Sample code for loading data
 
@@ -67,10 +68,10 @@ bias_list = []
 epochs=0
 iterations = 20000
 for batch_size in B:
+    start_time = int(round(time.time() * 1000))
     batch_count = int(3500/batch_size)
     num_epochs = int(iterations/batch_count)
     learnrate=0.005
-    tempresult=[]
     if (batch_size == 1500):
         for step in range(0,num_epochs):
             for i in range(0,2):
@@ -84,7 +85,6 @@ for batch_size in B:
             minix[500:1500] = trainData[0:1000]
             miniy[500:1500] = trainTarget[0:1000]
             _, err, currentW, currentb, yhat = sess.run([train, mse, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate})
-            tempresult.append(err)
     else:
         for step in range(0,num_epochs):
             for i in range(0,batch_count):
@@ -92,25 +92,8 @@ for batch_size in B:
                 minix=trainData[start_index:start_index+batch_size]
                 miniy=trainTarget[start_index:start_index+batch_size]
                 _, err, currentW, currentb, yhat = sess.run([train, mse, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate})
-                tempresult.append(err)
-    
-    epochs=(len(tempresult))
-    result.append(tempresult)
-    weight_list.append(currentW)
-    bias_list.append(currentb)
+    end_time = int(round(time.time() * 1000))
+    run_time = end_time - start_time;
+    print("for batch size",batch_size,", the final MSE is",err,",train time is",run_time,"ms");
     sess.run(init)
-#print(rate)
-#print(weight_list[-1])
-#print(weight_list[-1])
-x = np.arange(epochs)
-y = result[0]
-color=['r','g','b']
-for idx, val in enumerate(B):
-    line, = plt.plot(x, result[idx],color=color[idx], label="batch size: "+str(val))
 
-plt.legend(loc='upper right', shadow=True, fontsize='x-large')
-
-
-plt.ylabel('Training loss')
-plt.xlabel('Number of Epochs')
-plt.show()
