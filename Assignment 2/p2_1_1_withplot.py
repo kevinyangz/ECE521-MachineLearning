@@ -106,14 +106,19 @@ for rate in learn:
 x = np.arange(epochs)
 y = result[0]
 
+
+# plot the cross entropy loss
+line_valid_error = plt.plot(x, valid_error_result,color='r', label="Valid Data Set Loss")
+line_test_accuracy = plt.plot(x, test_error_result,color='b', label="Test Data Set Loss")   
+plt.legend(loc='best', shadow=True, fontsize='small')    
+plt.ylabel('Cross Entropy Loss')
+plt.xlabel('Number of Epochs')
+plt.show()
+
+# plot the validation accuracy 
 line_valid_accuracy = plt.plot(x, valid_accuracy_result,color='r', label="Valid Data Set Accuracy")
 line_test_accuracy = plt.plot(x, test_accuracy_result,color='g', label="Test Data Set Accuracy")
-
-line_valid_error = plt.plot(x, valid_error_result,color='purple', label="Valid Data Set Loss")
-line_test_accuracy = plt.plot(x, test_error_result,color='b', label="Test Data Set Loss")   
-plt.legend(loc='best', shadow=True, fontsize='small')
-
-    
-plt.ylabel('Cross Entropy Loss/ Trainging Accuracy')
+plt.legend(loc='best', shadow=True, fontsize='small')    
+plt.ylabel('Classification Accuracy')
 plt.xlabel('Number of Epochs')
 plt.show()
