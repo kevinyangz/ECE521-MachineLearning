@@ -86,6 +86,7 @@ for rate in learn:
          #calcuate the accuracy of valid data and test data for each epoch
         valid_accuracy_list = []
         valid_err, valid_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: validData, y_target: validTarget,weight_decay:weightdecay})
+        valid_result = sess.run(tf.sigmoid(valid_result))
         for i in range(np.shape(valid_result)[0]):
             valid_accuracy_list.append(validTarget[i] == (valid_result[i]>0.5))
         valid_accuracy = valid_accuracy_list.count(True) / len (valid_result) *100
@@ -94,6 +95,7 @@ for rate in learn:
 
         test_accuracy_list = []
         test_err, test_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: testData, y_target: testTarget,weight_decay:weightdecay})
+        test_result = sess.run(tf.sigmoid(test_result))
         for i in range(np.shape(test_result)[0]):
             test_accuracy_list.append(testTarget[i] == (test_result[i]>0.5))
         test_accuracy = test_accuracy_list.count(True) / len (test_result) *100
@@ -106,7 +108,7 @@ for rate in learn:
 x = np.arange(epochs)
 y = result[0]
 
-
+plt.interactive(False)
 # plot the cross entropy loss
 line_valid_error = plt.plot(x, valid_error_result,color='r', label="Valid Data Set Loss")
 line_test_accuracy = plt.plot(x, test_error_result,color='b', label="Test Data Set Loss")   
