@@ -1,0 +1,6 @@
+logistic_train_accuracy 94.94285714285714
+logistic_valid_accuracy 93.0
+logistic_test_accuracy 94.48275862068965
+Y_norm_train_accuracy 99.31428571428572
+Y_norm_Test_accuracy 100.0
+Y_norm_Valid_accuracy 97.0
