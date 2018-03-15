@@ -75,7 +75,7 @@ testData = np.reshape(testData, [len(testData), 28*28])
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
-learn= [0.001]
+learn= [0.005]
 weightdecay = 0.01
 result=[]
 valid_accuracy_result = []
@@ -106,6 +106,7 @@ for rate in learn:
      #calcuate the accuracy of valid data and test data for each epoch
     train_accuracy_list = []
     train_err, train_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: trainData, y_target: trainTarget,weight_decay:weightdecay})
+    train_result = sess.run(tf.sigmoid(train_result))
     for i in range(np.shape(train_result)[0]):
         train_accuracy_list.append(trainTarget[i] == (train_result[i]>0.5))
     logistic_train_accuracy = train_accuracy_list.count(True) / len (train_result) *100
@@ -113,14 +114,17 @@ for rate in learn:
 
     valid_accuracy_list=[]
     valid_err, valid_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: validData, y_target: validTarget,weight_decay:weightdecay})
+    valid_result = sess.run(tf.sigmoid(valid_result))
     for i in range(np.shape(valid_result)[0]):
         valid_accuracy_list.append(validTarget[i] == (valid_result[i]>0.5))
+
     logistic_valid_accuracy = valid_accuracy_list.count(True) / len (valid_result) *100
     print("logistic_valid_accuracy "+str(logistic_valid_accuracy))
 
 
     test_accuracy_list = []
     test_err, test_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: testData, y_target: testTarget,weight_decay:weightdecay})
+    test_result = sess.run(tf.sigmoid(test_result))
     for i in range(np.shape(test_result)[0]):
         test_accuracy_list.append(testTarget[i] == (test_result[i]>0.5))
     logistic_test_accuracy = test_accuracy_list.count(True) / len (test_result) *100
