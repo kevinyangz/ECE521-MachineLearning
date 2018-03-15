@@ -52,6 +52,7 @@ w,b,x,y_target,y_predicted,learn_rate,weight_decay,weight_decay_loss, train=buil
 N=len(trainData)
 trainData = np.reshape(trainData, [N, 28*28])
 validData = np.reshape(validData, [len(validData), 28*28])
+testData = np.reshape(testData,[len(testData),28*28])
 #print(trainTarget)
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
@@ -73,9 +74,19 @@ for weightDecay in weight_decay_list:
             _, err, currentW, currentb, yhat = sess.run([train, weight_decay_loss, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnRate,weight_decay:weightDecay})
         tempresult.append(err)
     epochs=(len(tempresult))
-    valid_err = sess.run(weight_decay_loss,feed_dict={x: validData, y_target: validTarget,weight_decay:weightDecay})
-    print("Weight Decay Coefficient " + str(weightDecay) + ": " + "valid data error: " + str(valid_err) + " test data error: " + str(err))
-    valid_weight_decay_list.append(valid_err)
+    #calcuate the accuracy of valid data and test data
+    valid_accuracy_list = []
+    valid_err, valid_result = sess.run([weight_decay_loss,y_predicted],feed_dict={x: validData, y_target: validTarget,weight_decay:weightDecay})
+    for i in range(np.shape(valid_result)[0]):
+        valid_accuracy_list.append(validTarget[i] == (valid_result[i]>0.5))
+    valid_accuracy = valid_accuracy_list.count(True) / len (valid_result) *100
+
+    test_accuracy_list = []
+    test_err, test_result = sess.run([weight_decay_loss,y_predicted],feed_dict={x: testData, y_target: testTarget,weight_decay:weightDecay})
+    for i in range(np.shape(test_result)[0]):
+        test_accuracy_list.append(testTarget[i] == (test_result[i]>0.5))
+    test_accuracy = test_accuracy_list.count(True) / len (test_result) *100
+    print("Weight Decay Coefficient " + str(weightDecay) + ": " + "valid data accuracy: " + str(valid_accuracy) + "% " + "test data accuracy: " + str(test_accuracy) + "%")
     sess.run(init)
 
 
