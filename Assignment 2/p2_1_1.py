@@ -38,7 +38,7 @@ def build_graph():
         y_predicted = tf.sigmoid(tf.matmul(X,W) + b)
      
         #crossEntropyLoss = tf.reduce_sum(-y_target*log(y_predicted)-(1-y_target)*log(1-y_predicted), 1)  + tf.divide(weight_decay,2)*tf.squeeze(tf.matmul(W,W,transpose_a=True))
-        crossEntropyLoss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_target,logits=y_predicted)+ tf.divide(weight_decay,2)*tf.squeeze(tf.matmul(W,W,transpose_a=True))
+        crossEntropyLoss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_target,logits=y_predicted))+ tf.divide(weight_decay,2)*tf.squeeze(tf.matmul(W,W,transpose_a=True))
         
         optimizer = tf.train.GradientDescentOptimizer(learning_rate = learn_rate)
         train = optimizer.minimize(loss=crossEntropyLoss)
