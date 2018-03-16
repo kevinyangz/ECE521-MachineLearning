@@ -83,8 +83,8 @@ for learn in learn_rate:
                 start_index = num_still_need
             err,train_r,weight_w,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn,weight_decay:weight})
 
-            if((i*batch_size)/747 > prev_count):
-                prev_count = (i*batch_size)/747
+            if(int((i*batch_size)/747) > prev_count):
+                prev_count = int((i*batch_size)/747)
                 tempresult.append(err)
 
         y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:validFaceData})))
