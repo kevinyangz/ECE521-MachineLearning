@@ -52,15 +52,15 @@ trainFaceData = np.reshape(trainFaceData, [N, 32*32])
 validFaceData = np.reshape(validFaceData, [len(validFaceData), 32*32])
 testFaceData = np.reshape(testFaceData, [len(testFaceData), 32*32])
 
-iterations = 10000
+iterations = 5000
 batch_size = 300
 
 num_batch_per_epoch = int(747/batch_size)
 num_epochs = int(iterations/num_batch_per_epoch)
 
 result=[]
-learn=0.001
-weight=0.1 #best learn rate and weight accuracy
+learn=0.0001
+weight=0.001 #best learn rate and weight accuracy
 best_Y_Predicted=[]
 valid_accuracy_result = []
 valid_error_result = []
@@ -85,8 +85,8 @@ for i in range(0,iterations):
         start_index = num_still_need
     err,train_r,weight_w,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn,weight_decay:weight})
 
-    if((i*batch_size)/747 > prev_count):
-        prev_count = (i*batch_size)/747
+    if(int((i*batch_size)/747) > prev_count):
+        prev_count = int((i*batch_size)/747)
         #training data accuracy and error calculation
         y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:trainFaceData})))
         prediction_accuracy=tf.equal(tf.argmax(y_predic,1),tf.argmax(one_hot_trainFaceTarget,1))
@@ -101,11 +101,12 @@ for i in range(0,iterations):
         valid_accuracy_result.append(accur)
         err,y_predicted=sess.run([loss,y_predicted_label],feed_dict={X:validFaceData,y_target:one_hot_validFaceTarget,weight_decay:weight})
         valid_error_result.append(err)
+        print(i, err)
 
 y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:testFaceData})))
 prediction_accuracy=tf.equal(tf.argmax(y_predic,1),tf.argmax(one_hot_testFaceTarget,1))
 accur=sess.run(tf.reduce_mean(tf.cast(prediction_accuracy,tf.float32)))
-print("accuracy for test data is : " + str(accur))
+#print("accuracy for test data is : " + str(accur))
 sess.run(init)
 
 x = np.arange(len(valid_accuracy_result))

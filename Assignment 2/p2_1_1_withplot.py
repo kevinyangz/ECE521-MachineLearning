@@ -108,8 +108,10 @@ for rate in learn:
 x = np.arange(epochs)
 y = result[0]
 
+
 print("Best test accuracy: " + str(np.amax(test_accuracy_result)))
 print("Best valid accuracy: " + str(np.amax(valid_accuracy_result)))
+
 plt.interactive(False)
 # plot the cross entropy loss
 line_valid_error = plt.plot(x, valid_error_result,color='r', label="Valid Data Set Loss")
