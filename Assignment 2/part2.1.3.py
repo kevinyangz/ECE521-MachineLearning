@@ -145,7 +145,6 @@ for i in range(np.shape(y_norm_train)[0]):
 Y_norm_train_accuracy = ynorm_train_acc.count(True) / len (ynorm_train_acc) *100
 print("Y_norm_train_accuracy "+str(Y_norm_train_accuracy))
 
-#W,X,y_target,y_predicted
 woptimal,x_data,y_data,y_norm_test_reuslt=calculateMSE()
 N=len(testData)
 testData = np.reshape(testData, [N, 28*28])
@@ -155,7 +154,7 @@ y_norm_test=sess.run([y_norm_test_reuslt],feed_dict={x_data:testData, y_data: te
 
 y_norm_test=np.reshape(y_norm_test,[145,1])
 ynorm_Test_acc = []
-for i in range(np.shape(y_norm_test)[1]):
+for i in range(np.shape(y_norm_test)[0]):
     ynorm_Test_acc.append(testTarget[i] == (y_norm_test[i]>0.5))
 Y_norm_Test_accuracy = ynorm_Test_acc.count(True) / len (ynorm_Test_acc) *100
 print("Y_norm_Test_accuracy "+str(Y_norm_Test_accuracy))

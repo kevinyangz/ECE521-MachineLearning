@@ -4,3 +4,12 @@ logistic_test_accuracy 94.48275862068965
 Y_norm_train_accuracy 99.31428571428572
 Y_norm_Test_accuracy 100.0
 Y_norm_Valid_accuracy 97.0
+
+
+with sigmoid: correct
+logistic_train_accuracy 96.74285714285715
+logistic_valid_accuracy 96.0
+logistic_test_accuracy 96.55172413793103
+Y_norm_train_accuracy 99.31428571428572
+Y_norm_Test_accuracy 95.86206896551724
+Y_norm_Valid_accuracy 97.0
