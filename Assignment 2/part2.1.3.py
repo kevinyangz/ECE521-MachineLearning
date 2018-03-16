@@ -76,7 +76,7 @@ init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
 learn= [0.005]
-weightdecay = 0.01
+weightdecay = 0.0
 result=[]
 valid_accuracy_result = []
 valid_error_result = []
