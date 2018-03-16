@@ -63,16 +63,27 @@ for learn in learn_rate:
     tempresult=[]
     weight=[]
     bias=[]
-    for step in range(0,num_epochs):
-        for i in range(0,num_batch_per_epoch):
-            start_index = (i* batch_size)%747
-            minix=trainFaceData[start_index:start_index+batch_size]
-            miniy=one_hot_trainFaceTarget[start_index:start_index+batch_size]
+    start_index = 0
+    for i in range(0,iterations):
+        end_index = start_index + batch_size
+        if(end_index<747):
+            minix=trainFaceData[start_index:end_index]
+            miniy=one_hot_trainFaceTarget[start_index:end_index]
+            start_index = start_index + batch_size
+        else:
+            num_remaining = 747-start_index
+            minix[0:num_remaining] = trainFaceData[start_index:]
+            miniy[0:num_remaining] = one_hot_trainFaceTarget[start_index:]
+            num_still_need = batch_size-num_remaining
+            minix[num_remaining:batch_size] = trainFaceData[0:num_still_need]
+            miniy[num_remaining:batch_size] = one_hot_trainFaceTarget[start_index:747]
+            start_index = num_still_need
 
-            err,train_r,weight,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn})
-            #print(err)
-            #_, err, currentW, currentb, yhat = sess.run([train, cross_entropy_loss, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate, weight_decay:weightdecay})
 
+        err,train_r,weight,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn})
+        #print(err)
+        #_, err, currentW, currentb, yhat = sess.run([train, cross_entropy_loss, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate, weight_decay:weightdecay})
+        if (i%747 == 0):
             tempresult.append(err)
 
     y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:trainFaceData})))

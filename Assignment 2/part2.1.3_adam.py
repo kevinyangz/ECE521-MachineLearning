@@ -56,16 +56,20 @@ def build_graph_adam():
     # Graph definition
     y_predicted = tf.matmul(X,W) + b
 
-    crossEntropyLoss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_target,logits=y_predicted))+ tf.divide(weight_decay,2)*tf.squeeze(tf.matmul(W,W,transpose_a=True))
+    MSE = tf.divide(tf.reduce_mean(tf.reduce_sum(tf.square(y_predicted - y_target),\
+                                                              reduction_indices=1,\
+                                                              name='squared_error'),\
+                                                name='mean_squared_error'),2)
+    #crossEntropyLoss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_target,logits=y_predicted))+ tf.divide(weight_decay,2)*tf.squeeze(tf.matmul(W,W,transpose_a=True))
 
     optimizer = tf.train.AdamOptimizer(learning_rate = learn_rate)
-    train = optimizer.minimize(loss=crossEntropyLoss)
-    return W, b, X, y_target, y_predicted,learn_rate,weight_decay,crossEntropyLoss, train
+    train = optimizer.minimize(loss=MSE)
+    return W, b, X, y_target, y_predicted,learn_rate,weight_decay,MSE, train
 
 
 trainData,trainTarget,validData,validTarget,testData,testTarget=Load_data()
 w,b,x,y_target,y_predicted,learn_rate,weight_decay,cross_entropy_loss,train=build_graph()
-w_adam,b_adam,x_adam,y_target_adam,y_predicted_adam,learn_rate_adam,weight_decay_adam,cross_entropy_loss_adam,train_adam=build_graph_adam()
+w_adam,b_adam,x_adam,y_target_adam,y_predicted_adam,learn_rate_adam,weight_decay_adam,mse_loss_adam,train_adam=build_graph_adam()
 
 #Reshape the data to N x 784 format
 N=len(trainData)
@@ -77,7 +81,7 @@ testData = np.reshape(testData, [len(testData), 28*28])
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
-weightdecay = 0.01
+weightdecay = 0
 result=[]
 valid_accuracy_result = []
 valid_error_result = []
@@ -98,7 +102,7 @@ linear_error_list =[]
 
 
 for optimizer in range(0,2):
-    learnrate=0.005
+    learnrate=0.001
     for step in range(0,num_epochs):
         for i in range(0,7):
             start_index = i* 500
@@ -107,27 +111,30 @@ for optimizer in range(0,2):
             #logistic regression
             if(optimizer == 0):
                 _, err, currentW, currentb, yhat = sess.run([train, cross_entropy_loss, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate, weight_decay:weightdecay})
-                #add error and the into a list  here
-                logistic_error_list.append(err)
-                train_accuracy_list = []
-                train_err, train_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: trainData, y_target: trainTarget,weight_decay:weightdecay})
-                train_result = sess.run(tf.sigmoid(train_result))
-                for i in range(np.shape(train_result)[0]):
-                    train_accuracy_list.append(trainTarget[i] == (train_result[i]>0.5))
-                logistic_train_accuracy = train_accuracy_list.count(True) / len (train_result) *100
-                logistic_accuracy_list.append(logistic_train_accuracy)
-
             #linear regression
             else:
-                _, err, currentW, currentb, yhat = sess.run([train_adam, cross_entropy_loss_adam, w_adam, b_adam, y_predicted_adam], feed_dict={x_adam: minix, y_target_adam: miniy,learn_rate_adam:learnrate, weight_decay_adam:weightdecay})
-                #add error and the into a list  here
-                linear_error_list.append(err)
-                train_accuracy_list = []
-                train_err, train_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: trainData, y_target: trainTarget,weight_decay:weightdecay})
-                for i in range(np.shape(train_result)[0]):
-                    train_accuracy_list.append(trainTarget[i] == (train_result[i]>0.5))
-                linear_train_accuracy = train_accuracy_list.count(True) / len (train_result) *100
-                linear_accuracy_list.append(linear_train_accuracy)
+                _, err, currentW, currentb, yhat = sess.run([train_adam, mse_loss_adam, w_adam, b_adam, y_predicted_adam], feed_dict={x_adam: minix, y_target_adam: miniy,learn_rate_adam:learnrate, weight_decay_adam:weightdecay})
+
+        if (optimizer == 0):
+            #add error and the into a list  here
+            train_accuracy_list = []
+            train_err, train_result = sess.run([cross_entropy_loss,y_predicted],feed_dict={x: trainData, y_target: trainTarget,weight_decay:weightdecay})
+            logistic_error_list.append(train_err)
+            train_result = sess.run(tf.sigmoid(train_result))
+            for i in range(np.shape(train_result)[0]):
+                train_accuracy_list.append(trainTarget[i] == (train_result[i]>0.5))
+            logistic_train_accuracy = train_accuracy_list.count(True) / len (train_result) *100
+            logistic_accuracy_list.append(logistic_train_accuracy)
+
+        else:
+            #add error and the into a list  here
+            train_accuracy_list = []
+            train_err, train_result = sess.run([mse_loss_adam,y_predicted_adam],feed_dict={x_adam: trainData, y_target_adam: trainTarget,weight_decay_adam:weightdecay})
+            linear_error_list.append(train_err)
+            for i in range(np.shape(train_result)[0]):
+                train_accuracy_list.append(trainTarget[i] == (train_result[i]>0.5))
+            linear_train_accuracy = train_accuracy_list.count(True) / len (train_result) *100
+            linear_accuracy_list.append(linear_train_accuracy)
     sess.run(init)
 
 epochs=(len(logistic_error_list))
@@ -139,7 +146,7 @@ x = np.arange(epochs)
 line_valid_error = plt.plot(x, logistic_error_list,color='r', label="Logistic Regression Train Data Cross Entropy Error")
 line_test_accuracy = plt.plot(x, linear_error_list,color='b', label="Linear Regression Train Data Cross Entropy Error")
 plt.legend(loc='best', shadow=True, fontsize='small')
-plt.ylabel('Cross Entropy Loss')
+plt.ylabel('Loss(Cross Entropy for Logistic, MSE for Linear)')
 plt.xlabel('Number of Epochs')
 plt.show()
 
