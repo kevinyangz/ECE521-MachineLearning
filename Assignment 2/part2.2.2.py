@@ -52,7 +52,7 @@ trainFaceData = np.reshape(trainFaceData, [N, 32*32])
 validFaceData = np.reshape(validFaceData, [len(validFaceData), 32*32])
 testFaceData = np.reshape(testFaceData, [len(testFaceData), 32*32])
 
-iterations = 20
+iterations = 10000
 batch_size = 300
 
 num_batch_per_epoch = int(747/batch_size)
@@ -60,13 +60,11 @@ num_epochs = int(iterations/num_batch_per_epoch)
 
 result=[]
 learn_rate=[0.005,0.001,0.0001]
-weight_d=[0,0.001,0.1,1]
+weight_d=[0.0,0.001,0.1,1]
 best_Y_Predicted=[]
 for learn in learn_rate:
     for weight in weight_d:
         tempresult=[]
-        weight=[]
-        bias=[]
         start_index = 0
         prev_count = 0
         for i in range(0,iterations):
@@ -83,17 +81,17 @@ for learn in learn_rate:
                 minix[num_remaining:batch_size] = trainFaceData[0:num_still_need]
                 miniy[num_remaining:batch_size] = one_hot_trainFaceTarget[0:num_still_need]
                 start_index = num_still_need
-        err,train_r,weight,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn,weight_decay:weight})
+            err,train_r,weight_w,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn,weight_decay:weight})
 
-        if((i*batch_size)/747 > prev_count):
-            prev_count = (i*batch_size)/747
-            tempresult.append(err)
+            if((i*batch_size)/747 > prev_count):
+                prev_count = (i*batch_size)/747
+                tempresult.append(err)
 
         y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:trainFaceData})))
         prediction_accuracy=tf.equal(tf.argmax(y_predic,1),tf.argmax(one_hot_trainFaceTarget,1))
         accur=sess.run(tf.reduce_mean(tf.cast(prediction_accuracy,tf.float32)))
         best_Y_Predicted.append(accur)
-        print("accuracy for learn rate "+str(learn)+" weight decay "+ str(weight) + ":"+str(accur))
+        print("accuracy for learn rate "+str(learn)+" weight decay "+ str(weight) + ":   "+str(accur))
         result.append(tempresult)
         sess.run(init)
 
