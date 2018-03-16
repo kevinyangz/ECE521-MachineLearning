@@ -21,13 +21,80 @@ def Load_FaceData(data_path, target_path, task):
     target[rnd_idx[trBatch + validBatch + 1:-1], task]
     return trainData,trainTarget,validData,validTarget,testData,testTarget
 
+def Build_Graph():
+    
+    W = tf.Variable(tf.truncated_normal(shape=[1024,6], stddev=0.1), name='weights') #not too sure about stddev
+    b = tf.Variable(0.0, name='biases')
+    X = tf.placeholder(tf.float32, [None, 1024], name='input_x')
+    y_target = tf.placeholder(tf.float32, [None,6], name='target_y')
+    learn_rate=tf.placeholder(tf.float32,shape=[],name='learn_rate')
+    # Graph definition
+    y_predicted = tf.matmul(X,W) + b
+    crossEntropyLoss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target,logits=y_predicted))+ tf.divide(0.01,2)*tf.nn.l2_loss(W)
+    optimizer = tf.train.AdamOptimizer(learning_rate = learn_rate)
+    train = optimizer.minimize(loss=crossEntropyLoss)
+    return crossEntropyLoss,W,b,X,y_target,train,learn_rate,y_predicted
+
+trainFaceData,trainFaceTarget,validFaceData,validFaceTarget,testFaceData,testFaceTarget= Load_FaceData("data.npy","target.npy",0)
 
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
 
+one_hot_testFaceTarget=sess.run(tf.one_hot(testFaceTarget, 6) )  #93
+one_hot_validFaceTarget=sess.run(tf.one_hot(validFaceTarget, 6) ) #92
+one_hot_trainFaceTarget=sess.run(tf.one_hot(trainFaceTarget, 6) ) #747
 
-trainFaceData,trainFaceTarget,validFaceData,validFaceTarget,testFaceData,testFaceTarget= Load_FaceData("data.npy","target.npy",0)
-one_hot_testFaceTarget=sess.run(tf.one_hot(testFaceTarget, 6) ) 
-one_hot_validFaceTarget=sess.run(tf.one_hot(validFaceTarget, 6) ) 
-one_hot_trainFaceTarget=sess.run(tf.one_hot(trainFaceTarget, 6) ) 
+N=len(trainFaceData)
+trainFaceData = np.reshape(trainFaceData, [N, 32*32])
+validFaceData = np.reshape(validFaceData, [len(validFaceData), 32*32])
+testFaceData = np.reshape(testFaceData, [len(testFaceData), 32*32])
+
+iterations = 2000
+batch_size = 300
+
+num_batch_per_epoch = int(747/batch_size)
+num_epochs = int(iterations/num_batch_per_epoch)
+
+result=[]
+learn_rate=[0.005,0.001,0.0001]
+best_Y_Predicted=[]
+for learn in learn_rate:
+    tempresult=[]
+    weight=[]
+    bias=[]
+    for step in range(0,num_epochs):
+        for i in range(0,num_batch_per_epoch):
+            start_index = (i* batch_size)%747
+            minix=trainFaceData[start_index:start_index+batch_size]
+            miniy=one_hot_trainFaceTarget[start_index:start_index+batch_size]
+
+            err,train_r,weight,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn})
+            #print(err)
+            #_, err, currentW, currentb, yhat = sess.run([train, cross_entropy_loss, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate, weight_decay:weightdecay})
+
+            tempresult.append(err)
+
+    y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:trainFaceData})))
+    prediction_accuracy=tf.equal(tf.argmax(y_predic,1),tf.argmax(one_hot_trainFaceTarget,1))
+    accur=sess.run(tf.reduce_mean(tf.cast(prediction_accuracy,tf.float32)))
+    best_Y_Predicted.append(accur)
+    result.append(tempresult)
+    sess.run(init)
+
+epochs=(len(result[0]))
+
+x = np.arange(epochs)
+
+color=['r','g','b']
+for idx, val in enumerate(learn_rate):
+    line, = plt.plot(x, result[idx],color=color[idx], label="learning rate: "+str(val))
+
+plt.legend(loc='upper right', shadow=True, fontsize='x-large')
+
+plt.ylabel('Training loss')
+plt.xlabel('Number of Epochs')
+plt.show()
+
+
+
