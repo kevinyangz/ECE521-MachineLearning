@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def Load_FaceData(data_path, target_path, task):
     # task = 0 >> select the name ID targets for face recognition task
@@ -28,13 +28,15 @@ def Build_Graph():
     X = tf.placeholder(tf.float32, [None, 1024], name='input_x')
     y_target = tf.placeholder(tf.float32, [None,6], name='target_y')
     learn_rate=tf.placeholder(tf.float32,shape=[],name='learn_rate')
+    weight_decay = tf.placeholder(tf.float32,shape=[],name='weight_decay')
     # Graph definition
     y_predicted = tf.matmul(X,W) + b
-    crossEntropyLoss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target,logits=y_predicted))+ tf.divide(0.01,2)*tf.nn.l2_loss(W)
+    crossEntropyLoss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target,logits=y_predicted))+ tf.divide(weight_decay,2)*tf.nn.l2_loss(W)
     optimizer = tf.train.AdamOptimizer(learning_rate = learn_rate)
     train = optimizer.minimize(loss=crossEntropyLoss)
-    return crossEntropyLoss,W,b,X,y_target,train,learn_rate,y_predicted
+    return crossEntropyLoss,W,b,X,y_target,train,learn_rate,y_predicted,weight_decay
 
+loss,W,B,X,y_target,train,learning_rate,y_predicted_label,weight_decay= Build_Graph()
 trainFaceData,trainFaceTarget,validFaceData,validFaceTarget,testFaceData,testFaceTarget= Load_FaceData("data.npy","target.npy",0)
 
 init = tf.global_variables_initializer()
@@ -50,7 +52,7 @@ trainFaceData = np.reshape(trainFaceData, [N, 32*32])
 validFaceData = np.reshape(validFaceData, [len(validFaceData), 32*32])
 testFaceData = np.reshape(testFaceData, [len(testFaceData), 32*32])
 
-iterations = 2000
+iterations = 20
 batch_size = 300
 
 num_batch_per_epoch = int(747/batch_size)
@@ -58,54 +60,56 @@ num_epochs = int(iterations/num_batch_per_epoch)
 
 result=[]
 learn_rate=[0.005,0.001,0.0001]
+weight_d=[0,0.001,0.1,1]
 best_Y_Predicted=[]
 for learn in learn_rate:
-    tempresult=[]
-    weight=[]
-    bias=[]
-    start_index = 0
-    for i in range(0,iterations):
-        end_index = start_index + batch_size
-        if(end_index<747):
-            minix=trainFaceData[start_index:end_index]
-            miniy=one_hot_trainFaceTarget[start_index:end_index]
-            start_index = start_index + batch_size
-        else:
-            num_remaining = 747-start_index
-            minix[0:num_remaining] = trainFaceData[start_index:]
-            miniy[0:num_remaining] = one_hot_trainFaceTarget[start_index:]
-            num_still_need = batch_size-num_remaining
-            minix[num_remaining:batch_size] = trainFaceData[0:num_still_need]
-            miniy[num_remaining:batch_size] = one_hot_trainFaceTarget[start_index:747]
-            start_index = num_still_need
+    for weight in weight_d:
+        tempresult=[]
+        weight=[]
+        bias=[]
+        start_index = 0
+        prev_count = 0
+        for i in range(0,iterations):
+            end_index = start_index + batch_size
+            if(end_index<747):
+                minix=trainFaceData[start_index:end_index]
+                miniy=one_hot_trainFaceTarget[start_index:end_index]
+                start_index = start_index + batch_size
+            else:
+                num_remaining = 747-start_index
+                minix[0:num_remaining] = trainFaceData[start_index:]
+                miniy[0:num_remaining] = one_hot_trainFaceTarget[start_index:]
+                num_still_need = batch_size-num_remaining
+                minix[num_remaining:batch_size] = trainFaceData[0:num_still_need]
+                miniy[num_remaining:batch_size] = one_hot_trainFaceTarget[0:num_still_need]
+                start_index = num_still_need
+        err,train_r,weight,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn,weight_decay:weight})
 
-
-        err,train_r,weight,bias,y_predicted=sess.run([loss,train,W,B,y_predicted_label],feed_dict={X:minix,y_target:miniy,learning_rate:learn})
-        #print(err)
-        #_, err, currentW, currentb, yhat = sess.run([train, cross_entropy_loss, w, b, y_predicted], feed_dict={x: minix, y_target: miniy,learn_rate:learnrate, weight_decay:weightdecay})
-        if (i%747 == 0):
+        if((i*batch_size)/747 > prev_count):
+            prev_count = (i*batch_size)/747
             tempresult.append(err)
 
-    y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:trainFaceData})))
-    prediction_accuracy=tf.equal(tf.argmax(y_predic,1),tf.argmax(one_hot_trainFaceTarget,1))
-    accur=sess.run(tf.reduce_mean(tf.cast(prediction_accuracy,tf.float32)))
-    best_Y_Predicted.append(accur)
-    result.append(tempresult)
-    sess.run(init)
+        y_predic =sess.run(tf.nn.softmax(sess.run(y_predicted_label,feed_dict={X:trainFaceData})))
+        prediction_accuracy=tf.equal(tf.argmax(y_predic,1),tf.argmax(one_hot_trainFaceTarget,1))
+        accur=sess.run(tf.reduce_mean(tf.cast(prediction_accuracy,tf.float32)))
+        best_Y_Predicted.append(accur)
+        print("accuracy for learn rate "+str(learn)+" weight decay "+ str(weight) + ":"+str(accur))
+        result.append(tempresult)
+        sess.run(init)
 
-epochs=(len(result[0]))
-
-x = np.arange(epochs)
-
-color=['r','g','b']
-for idx, val in enumerate(learn_rate):
-    line, = plt.plot(x, result[idx],color=color[idx], label="learning rate: "+str(val))
-
-plt.legend(loc='upper right', shadow=True, fontsize='x-large')
-
-plt.ylabel('Training loss')
-plt.xlabel('Number of Epochs')
-plt.show()
+#epochs=(len(result[0]))
+#
+#x = np.arange(epochs)
+#
+#color=['r','g','b']
+#for idx, val in enumerate(learn_rate):
+#    line, = plt.plot(x, result[idx],color=color[idx], label="learning rate: "+str(val))
+#
+#plt.legend(loc='upper right', shadow=True, fontsize='x-large')
+#
+#plt.ylabel('Training loss')
+#plt.xlabel('Number of Epochs')
+#plt.show()
 
 
 
