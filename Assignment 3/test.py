@@ -15,7 +15,7 @@ def load_data():
         Data=Data.astype(np.float32)
         trainData, trainTarget = Data[:15000], Target[:15000]
         validData, validTarget = Data[15000:16000], Target[15000:16000]
-        testData, testTarget = Data[16000:], Target[16000:]
+        testData, testTarget = Data[16000:16005], Target[16000:16005]
         return trainData,trainTarget,validData,validTarget,testData,testTarget
 
 def layer_block(input_tensor,n):
@@ -83,7 +83,9 @@ for learn in learn_rate:
     result.append(tempresult)
     accuracy_result.append(tempacc)
     loss_result=sess.run(crossEntropyError,feed_dict={X:trainMinstData,y_target:trainMinstTarget})
-    loss_acc=sess.run(accuracy,feed_dict={X:trainMinstData,y_target:trainMinstTarget})
+    loss_acc,Ypre=sess.run([accuracy,y_predicted_label],feed_dict={X:testMinstData,y_target:testMinstTarget})
+    print (Ypre)
+    print (testTarget)
 
     print("learning rate: %s loss is %s"%(learn,loss_result))
     print("learning rate: %s acc is %s"%(learn,loss_acc))
