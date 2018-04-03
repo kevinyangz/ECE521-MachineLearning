@@ -42,7 +42,7 @@ def build_graph():
     crossEntropyError = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
     labels = y_onehot, logits = relu_out),name='mean_cross_entropy')
     
-    accuracy = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y_predicted, -1),tf.to_int64(y_target))))
+    accuracy = tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted, 1),[-1,1]),tf.to_int64(y_target))))
     loss = crossEntropyError 
     # Training mechanism
     optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.005)
@@ -83,9 +83,11 @@ for learn in learn_rate:
     result.append(tempresult)
     accuracy_result.append(tempacc)
     loss_result=sess.run(crossEntropyError,feed_dict={X:trainMinstData,y_target:trainMinstTarget})
-    loss_acc,Ypre=sess.run([accuracy,y_predicted_label],feed_dict={X:testMinstData,y_target:testMinstTarget})
-    print (Ypre)
-    print (testTarget)
+    loss_acc,Ypre=sess.run([accuracy,y_predicted_label],feed_dict={X:trainMinstData,y_target:trainMinstTarget})
+
+
+    result=tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(Ypre, 1),[-1,1]),tf.to_int64(trainMinstTarget))))
+    print(sess.run(result))
 
     print("learning rate: %s loss is %s"%(learn,loss_result))
     print("learning rate: %s acc is %s"%(learn,loss_acc))
