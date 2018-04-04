@@ -15,7 +15,7 @@ def load_data():
         Data=Data.astype(np.float32)
         trainData, trainTarget = Data[:15000], Target[:15000]
         validData, validTarget = Data[15000:16000], Target[15000:16000]
-        testData, testTarget = Data[16000:16005], Target[16000:16005]
+        testData, testTarget = Data[16000:], Target[16000:]
         return trainData,trainTarget,validData,validTarget,testData,testTarget
 
 def layer_block(input_tensor,n):
@@ -59,38 +59,53 @@ sess = tf.InteractiveSession()
 sess.run(init)
 iterations = 20000
 num_epochs = int(iterations/30) #15000 Train Sample
-result=[]
-accuracy_result=[]
-learn_rate=[0.005]#,0.001,0.0001]
-best_Y_Predicted=[]
-print(trainMinstTarget.shape)
+Trainresult=[]
+TrainAcc=[]
+TestAcc=[]
+ValidAcc=[]
+
+learn_rate=[0.005,0.001,0.0001]
+
 for learn in learn_rate:
-    tempresult=[]
-    tempacc=[]
-    weight=[]
-    bias=[]
+    tempTrainresult=[]
+    tempTrainacc=[]
+    tempTestacc=[]
+    tempValidacc=[]
+
     for step in range(0,num_epochs):
         for i in range(0,30):
             start_index = i* 500
             minix=trainMinstData[start_index:start_index+500]
             miniy=trainMinstTarget[start_index:start_index+500]   
-            err,train_r,w0,bb0,w1,bb1,acc=sess.run([crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})            
-            tempresult.append(err)
-            tempacc.append(acc)
-        print(str(step)+"-------"+str(err)+"---"+str(acc))
-
-
-    result.append(tempresult)
-    accuracy_result.append(tempacc)
+            err,train_r,w0,bb0,w1,bb1,acc=sess.run([crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
+		            
+		#Loss result Collection per epoch
+	tempTrainresult.append(err)#Record Training loss each epoch
+		#Accuracy result per epoch
+	tempTestacc.append(sess.run(accuracy,feed_dict={X:testMinstData,y_target:testMinstTarget})) #Test Acc
+        tempTrainacc.append(acc)#Train acc per mini-batch #Double check whether need the entire training set or not
+        tempValidacc.append(sess.run(accuracy,feed_dict={X:validMinstData,y_target:validMinstTarget})) #Test Acc
+        #print(str(step)+"-------"+str(err)+"---"+str(acc))
+		
+	Trainresult.append(tempTrainresult)
+	TrainAcc.append(tempTrainacc)
+	TestAcc.append(tempTestacc)
+	ValidAcc.append(tempValidacc)
+			
+		
+	
     loss_result=sess.run(crossEntropyError,feed_dict={X:trainMinstData,y_target:trainMinstTarget})
-    loss_acc,Ypre=sess.run([accuracy,y_predicted_label],feed_dict={X:trainMinstData,y_target:trainMinstTarget})
+    train_acc=sess.run([accuracy],feed_dict={X:trainMinstData,y_target:trainMinstTarget})
+    test_acc=sess.run([accuracy],feed_dict={X:testMinstData,y_target:testMinstTarget})
+    valid_acc=sess.run([accuracy],feed_dict={X:validMinstData,y_target:validMinstTarget})
 
 
-    result=tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(Ypre, 1),[-1,1]),tf.to_int64(trainMinstTarget))))
-    print(sess.run(result))
+    print("learning rate: %s loss is %s"%(learn,loss_result)+" Train acc is %s"%train_acc +"Test acc is %s"%test_acc+"Valid acc is %s"%valid_acc)
 
-    print("learning rate: %s loss is %s"%(learn,loss_result))
-    print("learning rate: %s acc is %s"%(learn,loss_acc))
+
+    #x=np.arange(num_epochs)
+    #for idx,val in enumerate(learn_rate):
+	
 
 
 
