@@ -41,9 +41,15 @@ def build_graph():
     
     crossEntropyError = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
     labels = y_onehot, logits = relu_out),name='mean_cross_entropy')
-    
+   
+    Wn=tf.reshape(W0,[-1])
+    Wb=tf.reshape(W1,[-1])
+    print(Wn)
+    print(Wb)
+    all_weight=tf.concat(tf.reshape(W0,[-1]),tf.reshape(W1,[-1]))
+    weight_decay=tf.divide(0.0003,2)*tf.squeeze(tf.matmul(all_weight,all_weight,transpose_a=True))
     accuracy = tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted, 1),[-1,1]),tf.to_int64(y_target))))
-    loss = crossEntropyError 
+    loss = crossEntropyError+weight_decay 
     # Training mechanism
     optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.005)
     train = optimizer.minimize(loss=loss)
@@ -80,17 +86,17 @@ for learn in learn_rate:
             err,train_r,w0,bb0,w1,bb1,acc=sess.run([crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
 		            
 		#Loss result Collection per epoch
-	tempTrainresult.append(err)#Record Training loss each epoch
+    tempTrainresult.append(err)#Record Training loss each epoch
 		#Accuracy result per epoch
-	tempTestacc.append(sess.run(accuracy,feed_dict={X:testMinstData,y_target:testMinstTarget})) #Test Acc
-        tempTrainacc.append(acc)#Train acc per mini-batch #Double check whether need the entire training set or not
-        tempValidacc.append(sess.run(accuracy,feed_dict={X:validMinstData,y_target:validMinstTarget})) #Test Acc
+    tempTestacc.append(sess.run(accuracy,feed_dict={X:testMinstData,y_target:testMinstTarget})) #Test Acc
+    tempTrainacc.append(acc)#Train acc per mini-batch #Double check whether need the entire training set or not
+    tempValidacc.append(sess.run(accuracy,feed_dict={X:validMinstData,y_target:validMinstTarget})) #Test Acc
         #print(str(step)+"-------"+str(err)+"---"+str(acc))
 		
-	Trainresult.append(tempTrainresult)
-	TrainAcc.append(tempTrainacc)
-	TestAcc.append(tempTestacc)
-	ValidAcc.append(tempValidacc)
+    Trainresult.append(tempTrainresult)
+    TrainAcc.append(tempTrainacc)
+    TestAcc.append(tempTestacc)
+    ValidAcc.append(tempValidacc)
 			
 		
 	
