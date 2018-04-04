@@ -42,11 +42,14 @@ def build_graph():
     crossEntropyError = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
     labels = y_onehot, logits = relu_out),name='mean_cross_entropy')
    
-    Wn=tf.reshape(W0,[-1])
-    Wb=tf.reshape(W1,[-1])
+    Wn=tf.reshape(W0,[1,-1])
+    Wb=tf.reshape(W1,[1,-1])
+    print(W0)
+    print(W1)
     print(Wn)
     print(Wb)
-    all_weight=tf.concat(tf.reshape(W0,[-1]),tf.reshape(W1,[-1]))
+    all_weight=tf.concat([Wn,Wb],1)
+    print(all_weight)
     weight_decay=tf.divide(0.0003,2)*tf.squeeze(tf.matmul(all_weight,all_weight,transpose_a=True))
     accuracy = tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted, 1),[-1,1]),tf.to_int64(y_target))))
     loss = crossEntropyError+weight_decay 
