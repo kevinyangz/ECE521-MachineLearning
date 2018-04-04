@@ -50,19 +50,19 @@ def build_graph():
     print(Wb)
     all_weight=tf.concat([Wn,Wb],1)
     print(all_weight)
-    weight_decay=tf.divide(0.0003,2)*tf.squeeze(tf.matmul(all_weight,all_weight,transpose_a=True))
+    weight_decay=tf.divide(0.0003,2)*tf.reduce_sum(all_weight*all_weight)
     accuracy = tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted, 1),[-1,1]),tf.to_int64(y_target))))
     loss = crossEntropyError+weight_decay 
     # Training mechanism
     optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.005)
     train = optimizer.minimize(loss=loss)
     
-    return W0,b0,W1,b1,X, y_target, y_predicted, crossEntropyError, train, accuracy    
+    return weight_decay,W0,b0,W1,b1,X, y_target, y_predicted, crossEntropyError, train, accuracy    
 
 
 
 trainMinstData,trainMinstTarget,validMinstData,validMinstTarget,testMinstData,testMinstTarget=load_data()
-W0,b0,W1,b1,X,y_target, y_predicted_label, crossEntropyError, train, accuracy= build_graph()
+weight_deca,W0,b0,W1,b1,X,y_target, y_predicted_label, crossEntropyError, train, accuracy= build_graph()
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
@@ -86,7 +86,7 @@ for learn in learn_rate:
             start_index = i* 500
             minix=trainMinstData[start_index:start_index+500]
             miniy=trainMinstTarget[start_index:start_index+500]   
-            err,train_r,w0,bb0,w1,bb1,acc=sess.run([crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
+            test,err,train_r,w0,bb0,w1,bb1,acc=sess.run([weight_deca,crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
 		            
 		#Loss result Collection per epoch
     tempTrainresult.append(err)#Record Training loss each epoch
