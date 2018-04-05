@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def load_data():
@@ -57,12 +58,13 @@ def build_graph():
     optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.005)
     train = optimizer.minimize(loss=loss)
     
-    return weight_decay,W0,b0,W1,b1,X, y_target, y_predicted, crossEntropyError, train, accuracy    
+    return W0,b0,W1,b1,X, y_target, y_predicted, crossEntropyError, train, accuracy    
+
 
 
 
 trainMinstData,trainMinstTarget,validMinstData,validMinstTarget,testMinstData,testMinstTarget=load_data()
-weight_deca,W0,b0,W1,b1,X,y_target, y_predicted_label, crossEntropyError, train, accuracy= build_graph()
+W0,b0,W1,b1,X,y_target, y_predicted_label, crossEntropyError, train, accuracy= build_graph()
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
@@ -86,14 +88,13 @@ for learn in learn_rate:
             start_index = i* 500
             minix=trainMinstData[start_index:start_index+500]
             miniy=trainMinstTarget[start_index:start_index+500]   
-            test,err,train_r,w0,bb0,w1,bb1,acc=sess.run([weight_deca,crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
-		            
-		#Loss result Collection per epoch
-    tempTrainresult.append(err)#Record Training loss each epoch
+            err,train_r,w0,bb0,w1,bb1,acc=sess.run([crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
+    	
+	tempTrainresult.append(err)#Record Training loss each epoch
 		#Accuracy result per epoch
-    tempTestacc.append(sess.run(accuracy,feed_dict={X:testMinstData,y_target:testMinstTarget})) #Test Acc
-    tempTrainacc.append(acc)#Train acc per mini-batch #Double check whether need the entire training set or not
-    tempValidacc.append(sess.run(accuracy,feed_dict={X:validMinstData,y_target:validMinstTarget})) #Test Acc
+        tempTestacc.append(sess.run(accuracy,feed_dict={X:testMinstData,y_target:testMinstTarget})) #Test Acc
+        tempTrainacc.append(acc)#Train acc per mini-batch #Double check whether need the entire training set or not
+        tempValidacc.append(sess.run(accuracy,feed_dict={X:validMinstData,y_target:validMinstTarget})) #Test Acc
         #print(str(step)+"-------"+str(err)+"---"+str(acc))
 		
     Trainresult.append(tempTrainresult)
@@ -110,6 +111,18 @@ for learn in learn_rate:
 
 
     print("learning rate: %s loss is %s"%(learn,loss_result)+" Train acc is %s"%train_acc +"Test acc is %s"%test_acc+"Valid acc is %s"%valid_acc)
+
+x=np.arange(num_epochs)
+color=['r','g','b']
+for idx,val in enumerate(learn_rate):
+    #plt.figure(idx)
+    plt.plot(x,Trainresult[idx],color=color[idx],label="learn rate %s"%val)
+
+plt.legend(loc='upper right',shadow=True,fontsize='x-large')
+plt.ylabel('Training loss')
+plt.xlabel('Number of Epochs')
+plt.show()
+
 
 
     #x=np.arange(num_epochs)
