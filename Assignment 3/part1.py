@@ -21,11 +21,13 @@ def load_data():
 
 def layer_block(input_tensor,n):
     
-    shape=input_tensor.get_shape().as_list()[0]
+    shape=input_tensor.get_shape().as_list()[1]
+    print(input_tensor.shape[1].value)
     initializer = tf.contrib.layers.xavier_initializer()
     W = tf.Variable(initializer([shape,n]),name='weights')
-    b = tf.Variable(tf.zeros([n,1]), name='biases')
-    output=tf.add(tf.matmul(tf.transpose(W),input_tensor),b)
+    b = tf.Variable(tf.zeros([1,n]), name='biases')
+    output=tf.add(tf.matmul(input_tensor,W),b)
+    print(output.shape)
     return W,b,output
 
 def build_graph():
@@ -34,7 +36,8 @@ def build_graph():
     y_target = tf.placeholder(tf.float32, [None,1], name='target_y')
     y_onehot = tf.one_hot(tf.to_int32(y_target), 10, 1.0, 0.0, axis = -1)
 
-    W0,b0,output = layer_block(tf.transpose(X),1000)
+    W0,b0,output = layer_block(X,1000)
+
     W1,b1,relu_out= layer_block(tf.nn.relu(output),10)
     relu_out=tf.transpose(relu_out)
     y_predicted=tf.nn.softmax(relu_out)
@@ -49,7 +52,8 @@ def build_graph():
     all_weight=tf.concat([Wn,Wb],1)
     print(all_weight)
     weight_decay=tf.divide(0.0003,2)*tf.reduce_sum(all_weight*all_weight)
-    accuracy = tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted, 1),[-1,1]),tf.to_int64(y_target))))
+    accuracy = tf.reduce_mean(tf.equal(tf.argmax(y_predicted,1),tf.to_int64(y_target))))
+
     loss = crossEntropyError+weight_decay 
     # Training mechanism
     optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.005)
