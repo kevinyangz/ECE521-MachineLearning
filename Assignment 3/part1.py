@@ -24,7 +24,7 @@ def layer_block(input_tensor,n):
     shape=input_tensor.get_shape().as_list()[0]
     initializer = tf.contrib.layers.xavier_initializer()
     W = tf.Variable(initializer([shape,n]),name='weights')
-    b = tf.Variable(0.0, name='biases')
+    b = tf.Variable(tf.zeros([n,1]), name='biases')
     output=tf.add(tf.matmul(tf.transpose(W),input_tensor),b)
     return W,b,output
 
@@ -45,10 +45,7 @@ def build_graph():
    
     Wn=tf.reshape(W0,[1,-1])
     Wb=tf.reshape(W1,[1,-1])
-    print(W0)
-    print(W1)
-    print(Wn)
-    print(Wb)
+
     all_weight=tf.concat([Wn,Wb],1)
     print(all_weight)
     weight_decay=tf.divide(0.0003,2)*tf.reduce_sum(all_weight*all_weight)
@@ -90,12 +87,11 @@ for learn in learn_rate:
             miniy=trainMinstTarget[start_index:start_index+500]   
             err,train_r,w0,bb0,w1,bb1,acc=sess.run([crossEntropyError,train,W0,b0,W1,b1,accuracy],feed_dict={X:minix,y_target:miniy})
     	
-	tempTrainresult.append(err)#Record Training loss each epoch
-		#Accuracy result per epoch
+        tempTrainresult.append(err)#Record Training loss each epoch
         tempTestacc.append(sess.run(accuracy,feed_dict={X:testMinstData,y_target:testMinstTarget})) #Test Acc
         tempTrainacc.append(acc)#Train acc per mini-batch #Double check whether need the entire training set or not
         tempValidacc.append(sess.run(accuracy,feed_dict={X:validMinstData,y_target:validMinstTarget})) #Test Acc
-        #print(str(step)+"-------"+str(err)+"---"+str(acc))
+        #print(str(step)+"-------"+str(bb0.shape)+"---"+str(bb1.shape))
 		
     Trainresult.append(tempTrainresult)
     TrainAcc.append(tempTrainacc)
