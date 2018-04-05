@@ -118,30 +118,44 @@ for learn in learn_rate:
 
 
     print("learning rate: %s loss is %s"%(learn,loss_result)+" Train acc is %s"%train_acc +"Test acc is %s"%test_acc+"Valid acc is %s"%valid_acc)
+drawoption=0
+if(drawoption):
+	x=np.arange(num_epochs)
+	color=['r','g','b']
+	for idx,val in enumerate(learn_rate):
+	    #plt.figure(idx)
+	    plt.plot(x,Trainresult[idx],color=color[idx],label="learn rate %s"%val)
+	    #plt.plot(x,TrainAcc[idx],color=color[0],label="Train data error")
+	    #plt.plot(x,TestAcc[idx],color=color[1],label= "Test data error")
+	    #plt.plot(x,ValidAcc[idx],color=color[2],label="Valid data error")
 
-x=np.arange(num_epochs)
-color=['r','g','b']
-for idx,val in enumerate(learn_rate):
-    #plt.figure(idx)
-    plt.plot(x,Trainresult[idx],color=color[idx],label="learn rate %s"%val)
-    #plt.plot(x,TrainAcc[idx],color=color[0],label="Train data error")
-    #plt.plot(x,TestAcc[idx],color=color[1],label= "Test data error")
-    #plt.plot(x,ValidAcc[idx],color=color[2],label="Valid data error")
+	    #plt.legend(loc='upper right',shadow=True,fontsize='x-large')
+	    #plt.ylabel('cross entropy loss')
+	    #plt.ylabel('error')
+	    #plt.xlabel('Number of epoches')
+	    #plt.title('Neural Network error vs number of epoches when learn rate '+str(val))
+	    #plt.show()
+	plt.legend(loc='upper right',shadow=True,fontsize='x-large')
+	plt.ylabel('cross entropy loss')
+	plt.xlabel('Number of epoches')
+	plt.title('Neural Network loss vs number of epoches')
+	plt.show()
+	    #x=np.arange(num_epochs)
+	    #for idx,val in enumerate(learn_rate):
+else:
+        x=np.arange(num_epochs)
+	color=['r','g','b']
+	for idx,val in enumerate(learn_rate):
+	    plt.figure(idx)
 
-    #plt.legend(loc='upper right',shadow=True,fontsize='x-large')
-    #plt.ylabel('cross entropy loss')
-    #plt.ylabel('error')
-    #plt.xlabel('Number of epoches')
-    #plt.title('Neural Network error vs number of epoches when learn rate '+str(val))
-    #plt.show()
-plt.legend(loc='upper right',shadow=True,fontsize='x-large')
-plt.ylabel('cross entropy loss')
-plt.xlabel('Number of epoches')
-plt.title('Neural Network loss vs number of epoches')
-plt.show()
-    #x=np.arange(num_epochs)
-    #for idx,val in enumerate(learn_rate):
+	    plt.plot(x,TrainAcc[idx],color=color[0],label="Train data error")
+	    plt.plot(x,TestAcc[idx],color=color[1],label= "Test data error")
+	    plt.plot(x,ValidAcc[idx],color=color[2],label="Valid data error")
+
+	    plt.legend(loc='upper right',shadow=True,fontsize='x-large')
+
+	    plt.ylabel('error')
+	    plt.xlabel('Number of epoches')
+	    plt.title('Neural Network error vs number of epoches when learn rate '+str(val))
+	    plt.show()
 	
-
-
-
