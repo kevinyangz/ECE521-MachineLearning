@@ -22,12 +22,12 @@ def load_data():
 def layer_block(input_tensor,n):
     
     shape=input_tensor.get_shape().as_list()[1]
-    #print(input_tensor.shape[1].value)
+
     initializer = tf.contrib.layers.xavier_initializer()
     W = tf.Variable(initializer([shape,n]),name='weights')
-    b = tf.Variable(tf.zeros([1,n]), name='biases')
+    b = tf.Variable(tf.zeros(n), name='biases')
     output=tf.add(tf.matmul(input_tensor,W),b)
-    #print(output.shape)
+
     return W,b,output
 
 def build_graph():
@@ -36,29 +36,29 @@ def build_graph():
     y_target = tf.placeholder(tf.float32, [None,1], name='target_y')
     y_onehot = tf.one_hot(tf.to_int32(y_target), 10, 1.0, 0.0, axis = -1)
     learn_rate=tf.placeholder(tf.float32,shape=[],name='learn_rate')
-    W0,b0,output = layer_block(X,1000)
+    X_flatten=tf.reshape(X,[-1,28*28])
+    W0,b0,output = layer_block(X_flatten,1000)
 
     W1,b1,relu_out= layer_block(tf.nn.relu(output),10)
 
-    y_predicted=tf.nn.softmax(relu_out)
-
+    #y_predicted=tf.nn.softmax(relu_out)
+    y_predicted=relu_out#tf.nn.softmax(relu_out)
     #print(y_predicted.shape)
-    crossEntropyError = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
-    labels = y_onehot, logits = relu_out),name='mean_cross_entropy')
+    crossEntropyError = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels = y_onehot, logits = relu_out),name='mean_cross_entropy')
    
     Wn=tf.reshape(W0,[1,-1])
     Wb=tf.reshape(W1,[1,-1])
 
     all_weight=tf.concat([Wn,Wb],1)
 
-    weight_decay=tf.divide(0.0003,2)*tf.reduce_sum(all_weight*all_weight)
+    weight_decay=tf.divide(0,2)*tf.reduce_sum(all_weight*all_weight)
     #test=tf.equal(tf.argmax(y_predicted,1),tf.to_int64(y_target))
     #print(test.shape)
     accuracy = 1-(tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted,1),[-1,1]),tf.to_int64(y_target)))))
 
     loss = crossEntropyError+weight_decay 
     # Training mechanism
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate = learn_rate)
+    optimizer = tf.train.AdamOptimizer(learning_rate = learn_rate)
     train = optimizer.minimize(loss=loss)
     
     return W0,b0,W1,b1,X, y_target, y_predicted, crossEntropyError, train, accuracy,learn_rate    
@@ -71,14 +71,14 @@ W0,b0,W1,b1,X,y_target, y_predicted_label, crossEntropyError, train, accuracy,le
 init = tf.global_variables_initializer()
 sess = tf.InteractiveSession()
 sess.run(init)
-iterations = 20000
+iterations = 10000
 num_epochs = int(iterations/30) #15000 Train Sample
 Trainresult=[]
 TrainAcc=[]
 TestAcc=[]
 ValidAcc=[]
 
-learn_rate=[0.005,0.001,0.0001]
+learn_rate=[0.01,0.001,0.0001,0.0005]
 
 for learn in learn_rate:
     tempTrainresult=[]
@@ -110,18 +110,18 @@ for learn in learn_rate:
     train_acc=sess.run([accuracy],feed_dict={X:trainMinstData,y_target:trainMinstTarget})
     test_acc=sess.run([accuracy],feed_dict={X:testMinstData,y_target:testMinstTarget})
     valid_acc,y_predicted=sess.run([accuracy,y_predicted_label],feed_dict={X:validMinstData,y_target:validMinstTarget})
-    test=tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted,1),[-1,1]),tf.to_int64(validMinstTarget))))
+    #test=tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(y_predicted,-1),tf.to_int64(validMinstTarget))))
     
 
-    print(sess.run(test))
+    #print(sess.run(test))
     sess.run(init)
 
 
     print("learning rate: %s loss is %s"%(learn,loss_result)+" Train acc is %s"%train_acc +"Test acc is %s"%test_acc+"Valid acc is %s"%valid_acc)
-drawoption=0
+drawoption=1
 if(drawoption):
 	x=np.arange(num_epochs)
-	color=['r','g','b']
+	color=['r','g','b','yellow','teal','violet']
 	for idx,val in enumerate(learn_rate):
 	    #plt.figure(idx)
 	    plt.plot(x,Trainresult[idx],color=color[idx],label="learn rate %s"%val)
@@ -142,9 +142,10 @@ if(drawoption):
 	plt.show()
 	    #x=np.arange(num_epochs)
 	    #for idx,val in enumerate(learn_rate):
-else:
-        x=np.arange(num_epochs)
-	color=['r','g','b']
+if(drawoption):
+    
+	x=np.arange(num_epochs)
+	color=['r','g','b','yellow','teal','violet']
 	for idx,val in enumerate(learn_rate):
 	    plt.figure(idx)
 
