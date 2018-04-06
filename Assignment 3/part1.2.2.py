@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-
+from math import e
 
 def load_data():
     with np.load("notMNIST.npz") as data:
@@ -27,7 +27,7 @@ def layer_block(input_tensor,n):
     W = tf.Variable(initializer([shape,n]),name='weights')
     b = tf.Variable(tf.zeros(n), name='biases')
     output=tf.add(tf.matmul(input_tensor,W),b)
-
+    print(W.get_shape())
     return W,b,output
 
 def build_graph(hidden_unit,number_layers):
@@ -39,10 +39,12 @@ def build_graph(hidden_unit,number_layers):
     X_flatten=tf.reshape(X,[-1,28*28])
 	
     out= X_flatten
-    n=2   
-    for i in range(n):
+    weight_factor=0#np.power(e,-4)
+    weight_decay=0
+    for i in range(number_layers):
         W0,b0,result=layer_block(out,hidden_unit)
         out=tf.nn.relu(result)
+        weight_decay +=tf.reduce_sum(W0*W0)*weight_factor*0.5
 
     #W,b,out = layer_block(X_flatten,500)
     #W0,b0,output= layer_block(tf.nn.relu(out),500)
@@ -53,13 +55,10 @@ def build_graph(hidden_unit,number_layers):
 
     crossEntropyError = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels = y_onehot, logits = relu_out),name='mean_cross_entropy')
     
-    Wn=tf.reshape(W0,[1,-1])
-    Wb=tf.reshape(W1,[1,-1])
 
-    all_weight=tf.concat([Wn,Wb],1)
 
-    weight_decay=tf.divide(0,2)*tf.reduce_sum(all_weight*all_weight)
-
+    weight_decay+=tf.reduce_sum(W1*W1)*weight_factor*0.5
+    
     accuracy = 1-(tf.reduce_mean(tf.to_float(tf.equal(tf.reshape(tf.argmax(y_predicted,1),[-1,1]),tf.to_int64(y_target)))))
 
     loss = crossEntropyError+weight_decay 
@@ -83,7 +82,7 @@ ValidAcc=[]
 
 #learn_rate=[0.01,0.001,0.0001,0.0005]
 learn_rate=[0.0001]#[0.01,0.001,0.0001,0.0005]
-hidden_unit=[500]#,1000]
+hidden_unit=[500,1000]#,1000]
 for learn in hidden_unit:
 	
     W0,b0,W1,b1,X,y_target, y_predicted_label, crossEntropyError, train, accuracy,learnrate= build_graph(learn,1000/learn)
